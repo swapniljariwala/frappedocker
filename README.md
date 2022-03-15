@@ -1,4 +1,4 @@
-##Frappe/ERPNext containers for development (Supports Apple M1 chips as well)
+## Frappe/ERPNext containers for development (Supports Apple M1 chips as well)
 
 Main motivation behind creating this repository is to -
 
@@ -7,12 +7,12 @@ Main motivation behind creating this repository is to -
 
 (This will potentially help a fellow mac m1 owner avoid a sleepless night trying to figure out how to run Frappe/ERPNext on M1)
 
-##Pre-requisites
+## Pre-requisites
 
 * Docker desktop
 * Visual studio code
 
-##Steps
+## Steps
 
 **Clone this repo and open it in VS Code**
 
