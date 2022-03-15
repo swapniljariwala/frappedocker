@@ -1,0 +1,75 @@
+FROM python:3.9.9
+CMD ["bash"]
+ENV GIT_REPO=https://github.com/frappe/bench.git
+ENV GIT_BRANCH=develop
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update  
+RUN apt-get install --no-install-recommends -y  python2   git     mariadb-client     postgresql-client     gettext-base     wget         libssl-dev     fonts-cantarell     xfonts-75dpi     xfonts-base     locales     build-essential     cron     curl     vim     sudo     iputils-ping     watch     tree     nano     less     software-properties-common     bash-completion     libpq-dev     libffi-dev     liblcms2-dev     libldap2-dev     libmariadb-dev     libsasl2-dev     libtiff5-dev     libwebp-dev     redis-tools     rlwrap     tk8.6-dev     ssh-client     net-tools     
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt -y install nodejs
+RUN rm -rf /var/lib/apt/lists/* # buildkit
+RUN npm install -g yarn 
+
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen     && dpkg-reconfigure --frontend=noninteractive locales # buildkit
+ENV WKHTMLTOPDF_VERSION=0.12.6-1
+ 
+RUN if [ "$(uname -m)" = "aarch64" ]; then export ARCH=arm64; fi     && if [ "$(uname -m)" = "x86_64" ]; then export ARCH=amd64; fi     && downloaded_file=wkhtmltox_$WKHTMLTOPDF_VERSION.buster_${ARCH}.deb     && wget -q https://github.com/wkhtmltopdf/packaging/releases/download/$WKHTMLTOPDF_VERSION/$downloaded_file     && dpkg -i $downloaded_file     && rm $downloaded_file # buildkit
+
+RUN groupadd -g 1000 frappe     && useradd --no-log-init -r -m -u 1000 -g 1000 -G sudo frappe     && echo "frappe ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers # buildkit
+USER frappe
+WORKDIR /home/frappe
+
+ENV PYTHON_VERSION_V12=3.7.12
+ENV PYTHON_VERSION=3.9.9
+ENV HOME=/home/frappe
+ENV PYENV_ROOT=/home/frappe/.pyenv
+ENV PATH=/home/frappe/.pyenv/shims:/home/frappe/.pyenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# RUN git clone --depth 1 https://github.com/pyenv/pyenv.git .pyenv 
+# ENV PATH=/home/frappe/.pyenv/shims:/home/frappe/.pyenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# RUN pyenv install $PYTHON_VERSION_V12
+# RUN pyenv install $PYTHON_VERSION   
+# RUN pyenv global $PYTHON_VERSION $PYTHON_VERSION_V12    
+# RUN sed -Ei -e '/^([^#]|$)/ {a export PYENV_ROOT="/home/frappe/.pyenv" a export PATH="$PYENV_ROOT/bin:$PATH" a ' -e ':a' -e '$!{n;ba};}' ~/.profile     && echo 'eval "$(pyenv init --path)"' >>~/.profile     && echo 'eval "$(pyenv init -)"' >>~/.bashrc # buildkit
+
+# ENV PATH=/home/frappe/.local/bin:/home/frappe/.pyenv/shims:/home/frappe/.pyenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV PATH=/home/frappe/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# RUN GIT_REPO=https://github.com/frappe/bench.git GIT_BRANCH=develop 
+RUN git clone ${GIT_REPO} --depth 1 -b ${GIT_BRANCH} .bench     && pip install --user -e .bench     && echo "export PATH=/home/frappe/.local/bin:\$PATH" >>/home/frappe/.bashrc     && echo "export BENCH_DEVELOPER=1" >>/home/frappe/.bashrc # buildkit
+ENV NODE_VERSION=14.18.1
+ENV NODE_VERSION_FRAPPEV11=10.24.1
+ENV NVM_DIR=/home/frappe/.nvm
+ENV PATH=/home/frappe/.nvm/versions/node/v14.18.1/bin/:/home/frappe/.local/bin:/home/frappe/.pyenv/shims:/home/frappe/.pyenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+
+
+# RUN GIT_REPO=https://github.com/frappe/bench.git GIT_BRANCH=develop 
+# RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash 
+        # source ~/.bashrc && nvm install ${NODE_VERSION_FRAPPEV11}\
+        # nvm use v${NODE_VERSION_FRAPPEV11}   
+# ENV NVM_DIR="/home/frappe/.nvm"
+# RUN [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# RUN [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# RUN bash ${NVM_DIR}/nvm.sh   
+#####
+# RUN source ~/.bashrc && nvm install ${NODE_VERSION_FRAPPEV11}     
+# RUN nvm use v${NODE_VERSION_FRAPPEV11}     
+# RUN npm install -g yarn     
+# RUN nvm install ${NODE_VERSION}     
+# RUN nvm use v${NODE_VERSION}     
+# RUN npm install -g yarn     
+# RUN nvm alias default v${NODE_VERSION}     && rm -rf ${NVM_DIR}/.cache     && echo 'export NVM_DIR="/home/frappe/.nvm"' >>~/.bashrc     && echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc     && echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion' >> ~/.bashrc # buildkit
+EXPOSE 6787
+EXPOSE 8000-8005
+EXPOSE 9000-9005
+
+# ENV FLASK_APP=app.py
+# ENV FLASK_RUN_HOST=0.0.0.0
+# RUN apk add --no-cache gcc musl-dev linux-headers
+# Install
+# RUN apk add gcc musl-dev linux-headers
+# EXPOSE 5000
+# COPY . .
+# CMD ["flask", "run"]
