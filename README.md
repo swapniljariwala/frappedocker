@@ -16,7 +16,7 @@ Main motivation behind creating this repository is to -
 
 **Clone this repo and open it in VS Code**
 
-```
+```bash
 git clone https://github.com/swapniljariwala/frappedocker.git
 cd frappedocker
 code .
